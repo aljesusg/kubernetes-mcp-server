@@ -53,6 +53,7 @@ jobs:
        contains(github.event.comment.body, '/run-gevals'))
     outputs:
       should-run: ${{ steps.check.outputs.should-run }}
+      kiali-run: ${{ steps.check.outputs.kiali-run }}
       pr-number: ${{ steps.check.outputs.pr-number }}
       pr-ref: ${{ steps.check.outputs.pr-ref }}
     steps:
@@ -69,13 +70,20 @@ jobs:
               echo "should-run=true" >> $GITHUB_OUTPUT
               echo "pr-number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
               echo "pr-ref=refs/pull/${{ github.event.issue.number }}/head" >> $GITHUB_OUTPUT
+              # Check if task-filter contains kiali_
+              TASK_FILTER="${{ github.event.inputs.task-filter || '' }}"
+              if [[ "$TASK_FILTER" =~ kiali_ ]]; then
+                echo "kiali-run=true" >> $GITHUB_OUTPUT             
+              fi
             else
               echo "should-run=false" >> $GITHUB_OUTPUT
+              echo "kiali-run=false" >> $GITHUB_OUTPUT
               echo "User ${{ github.event.comment.user.login }} does not have permission to trigger evaluations"
             fi
           else
             echo "should-run=true" >> $GITHUB_OUTPUT
             echo "pr-ref=${{ github.ref }}" >> $GITHUB_OUTPUT
+            echo "kiali-run=true" >> $GITHUB_OUTPUT
           fi
 
   # Run gevals evaluation with Kind cluster
@@ -99,6 +107,7 @@ jobs:
         run: make kind-create-cluster KIND_CLUSTER_NAME=${{ env.KIND_CLUSTER_NAME }}
 
       - name: Install Istio/Kiali and bookinfo demo
+        if: needs.check-trigger.outputs.kiali-run == 'true'
         run: make setup-kiali
 
       - name: Start MCP server

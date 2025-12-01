@@ -12,6 +12,7 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true"
+        max-open-files: "65536"
 
     kind: ClusterConfiguration
     apiServer:
@@ -23,7 +24,7 @@ nodes:
         oidc-ca-file: /etc/kubernetes/pki/keycloak-ca.crt
   extraPortMappings:
   - containerPort: 80
-    hostPort: 8000
+    hostPort: 8080
     protocol: TCP
   - containerPort: 443
     hostPort: 8443

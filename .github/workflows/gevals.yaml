@@ -98,6 +98,9 @@ jobs:
       - name: Setup Kind cluster
         run: make kind-create-cluster KIND_CLUSTER_NAME=${{ env.KIND_CLUSTER_NAME }}
 
+      - name: Install Istio/Kiali and bookinfo demo
+        run: make setup-kiali
+
       - name: Start MCP server
         run: make run-server
 
